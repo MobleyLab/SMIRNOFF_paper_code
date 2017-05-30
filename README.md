@@ -2,109 +2,106 @@
 Code/tools relating to the initial SMIRNOFF format paper.
 
 ## Installation
-On May 20, 2017, after adding the `http://conda.anaconda.org/omnia` channel.
+On May 30, 2017.
 ```
-conda create --name smirnoff yank openforcefield packmol
-```
-I've removed and reinstalled `yank` (hash `8f0798e`), `openmmtools` (from PR#200, hash `3baac91`),
-and `openforcefield` (hash `14a9021`) from source code. Then
-```
+conda config --add channels omnia --add channels conda-forge
+conda create --name smirnoff yank openforcefield packmol 'icu=58.*'
+source activate smirnoff
 pip install -i https://pypi.anaconda.org/OpenEye/simple OpenEye-toolkits
 ```
 The final installation looks like
 ```
 (smirnoff) bash$ conda list
-alabaster                 0.7.10                   py35_0
+alabaster                 0.7.10                   py35_0    conda-forge
 ambermini                 16.16.0                       7    omnia
-babel                     2.4.0                    py35_0
-cairo                     1.14.8                        0
+babel                     2.3.4                    py35_0    conda-forge
+ca-certificates           2017.4.17                     0    conda-forge
+certifi                   2017.4.17                py35_0    conda-forge
 clusterutils              0.3.0                    py35_0    omnia
-curl                      7.45.0                        0
-cycler                    0.10.0                   py35_0
-cython                    0.25.2                   py35_0
-decorator                 4.0.11                   py35_0
-docopt                    0.6.2                    py35_1    omnia
-docutils                  0.13.1                   py35_0
+curl                      7.52.1                        0    conda-forge
+cycler                    0.10.0                   py35_0    conda-forge
+cython                    0.25.2                   py35_1    conda-forge
+decorator                 4.0.11                   py35_0    conda-forge
+docopt                    0.6.2                    py35_0    conda-forge
+docutils                  0.13.1                   py35_0    conda-forge
 fftw3f                    3.3.4                         2    omnia
-fontconfig                2.12.1                        3
-freetype                  2.5.5                         2
-glib                      2.50.2                        1
-harfbuzz                  0.9.39                        2
-hdf4                      4.2.12                        0
-hdf5                      1.8.15.1                      3
-imagesize                 0.7.1                    py35_0
-jinja2                    2.9.6                    py35_0
-jpeg                      8d                            2
-latexcodec                1.0.1                    py35_0    omnia
-libffi                    3.2.1                         1
+fontconfig                2.12.1                        1    conda-forge
+freetype                  2.6.3                         1    conda-forge
+hdf4                      4.2.12                        0    conda-forge
+hdf5                      1.8.17                       11    conda-forge
+icu                       58.1                          1    conda-forge
+imagesize                 0.7.1                    py35_0    conda-forge
+jinja2                    2.9.5                    py35_0    conda-forge
+jpeg                      9b                            0    conda-forge
+latexcodec                1.0.4                    py35_0    conda-forge
 libgcc                    5.2.0                         0
 libgfortran               1.0                           0
-libiconv                  1.14                          0
-libnetcdf                 4.3.3.1                       3
-libpng                    1.6.27                        0
-libxml2                   2.9.4                         0
-libxslt                   1.1.29                        0
-lxml                      3.7.3                    py35_0
-markupsafe                0.23                     py35_2
-matplotlib                1.5.1               np110py35_0
-mdtraj                    1.8.0               np110py35_1    omnia
+libiconv                  1.14                          4    conda-forge
+libnetcdf                 4.4.1.1                       4    conda-forge
+libpng                    1.6.28                        0    conda-forge
+libxml2                   2.9.4                         4    conda-forge
+libxslt                   1.1.29                        4    conda-forge
+lxml                      3.7.3                    py35_0    conda-forge
+markupsafe                1.0                      py35_0    conda-forge
+matplotlib                2.0.0b3             np110py35_3    conda-forge
+mdtraj                    1.8.0               np110py35_1    conda-forge
 mkl                       11.3.1                        0
-mpi4py                    2.0.0                    py35_2    omnia
-mpich                     3.2                           4    omnia
-netcdf4                   1.2.2               np110py35_0
-networkx                  1.11                     py35_0
-nose                      1.3.7                    py35_1
-numexpr                   2.5.2               np110py35_0
+mpi4py                    2.0.0                    py35_2    conda-forge
+mpich                     3.2                           4    conda-forge
+ncurses                   5.9                          10    conda-forge
+netcdf4                   1.2.7               np110py35_0    conda-forge
+networkx                  1.11                     py35_0    conda-forge
+numexpr                   2.6.1               np110py35_1    conda-forge
 numpy                     1.10.4                   py35_1
-numpydoc                  0.6.0                    py35_0
+numpydoc                  0.6.0                    py35_0    conda-forge
 OpenEye-toolkits          2017.2.1                  <pip>
 OpenEye-toolkits-python3-linux-x64 2017.2.1                  <pip>
-openmm                    7.1.0rc1                 py35_0    omnia
-openmmtools               0.9.5                     <pip>
-openmoltools              0.7.5                    py35_0    omnia
-openssl                   1.0.2k                        2
+openforcefield            0.0.2                    py35_0    omnia
+openmm                    7.1.1                    py35_0    omnia
+openmmtools               0.10.0                   py35_0    omnia
+openmoltools              0.8.1                    py35_0    omnia
+openssl                   1.0.2k                        0    conda-forge
 oset                      0.1.3                    py35_1    omnia
 packmol                   2016.06.09                    1    omnia
-pandas                    0.18.1              np110py35_0
-pango                     1.40.3                        1
+pandas                    0.19.2              np110py35_1    conda-forge
 parmed                    2.7.3                    py35_1    omnia
-pcre                      8.39                          1
-pip                       9.0.1                    py35_1
-pixman                    0.34.0                        0
+pip                       9.0.1                    py35_0    conda-forge
 pybtex                    0.18                     py35_0    omnia
 pybtex-docutils           0.2.1                    py35_1    omnia
-pygments                  2.2.0                    py35_0
+pygments                  2.2.0                    py35_0    conda-forge
 pymbar                    3.0.1.beta0         np110py35_0    omnia
-pyparsing                 2.1.4                    py35_0
-pyqt                      4.11.4                   py35_4
-pytables                  3.2.2               np110py35_1
-python                    3.5.3                         1
-python-dateutil           2.6.0                    py35_0
-pytz                      2017.2                   py35_0
-pyyaml                    3.12                     py35_0
-qt                        4.8.7                         4
-readline                  6.2                           2
-requests                  2.14.2                   py35_0
+pyparsing                 2.2.0                    py35_0    conda-forge
+pyqt                      4.11.4                   py35_2    conda-forge
+pytables                  3.3.0               np110py35_0    conda-forge
+python                    3.5.3                         3    conda-forge
+python-dateutil           2.6.0                    py35_0    conda-forge
+pytz                      2017.2                   py35_0    conda-forge
+pyyaml                    3.12                     py35_1    conda-forge
+qt                        4.8.7                         3
+readline                  6.2                           0    conda-forge
+requests                  2.13.0                   py35_0    conda-forge
 schema                    0.6.2                    py35_0    omnia
 scipy                     0.17.0              np110py35_1
-setuptools                27.2.0                   py35_0
-sip                       4.18                     py35_0
-six                       1.10.0                   py35_0
-snowballstemmer           1.2.1                    py35_0
-sphinx                    1.5.6                    py35_0
+setuptools                33.1.1                   py35_0    conda-forge
+sip                       4.18                     py35_1    conda-forge
+six                       1.10.0                   py35_1    conda-forge
+snowballstemmer           1.2.1                    py35_0    conda-forge
+sphinx                    1.6.2                    py35_0    conda-forge
 sphinxcontrib-bibtex      0.3.2                    py35_0    omnia
-sqlite                    3.13.0                        0
-tk                        8.5.18                        0
-wheel                     0.29.0                   py35_0
-xz                        5.2.2                         1
-yaml                      0.1.6                         0
-yank                      0.16.0                    <pip>
-zlib                      1.2.8                         3
+sphinxcontrib-websupport  1.0.1                    py35_0    conda-forge
+sqlite                    3.13.0                        1    conda-forge
+tk                        8.5.19                        1    conda-forge
+typing                    3.6.1                    py35_0    conda-forge
+wheel                     0.29.0                   py35_0    conda-forge
+xz                        5.2.2                         0    conda-forge
+yaml                      0.1.6                         0    conda-forge
+yank                      0.16.0                   py35_0    omnia
+zlib                      1.2.11                        0    conda-forge
 ```
 
-## Create setup files
+## Create setup files and run YANK
 ```
 cd scripts/
 python create_input_files.py > create_input_files.log
-bash run-all-torque.sh
+qsub -t 1-40 -v n_jobs=40 run-torque.sh  # or bash run-all-torque.sh
 ```

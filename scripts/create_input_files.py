@@ -125,37 +125,6 @@ def create_xml_system_files(molecule_mol2_filepath, tip3p_mol2_filepath,
             f.write(system_serialized)
 
 
-def create_yank_script(script_template, molecule_id,
-                       vacuum_pdb_filepath, solvated_pdb_filepath,
-                       vacuum_xml_filepath, solvated_xml_filepath,
-                       yank_script_filepath):
-    """Create the YANK script used to run a simulation.
-
-    Parameters
-    ----------
-    script_template : str
-        The template string for the YAML script.
-    molecule_id : str
-        The id of the molecule.
-    vacuum_pdb_filepath : str
-        The path to the PDB file of the system in vacuum.
-    solvated_pdb_filepath : str
-        The path to the PDB file of the solvated system.
-    vacuum_xml_filepath : str
-        The path to the OpenMM XML file of the system in vacuum.
-    solvated_xml_filepath : str
-        The path to the OpenMM XML file of the solvated system.
-    yank_script_filepath : str
-        The output path of the YANK script.
-
-    """
-    phase1_path = str([solvated_xml_filepath, solvated_pdb_filepath])
-    phase2_path = str([vacuum_xml_filepath, vacuum_pdb_filepath])
-    script = script_template.format(experiment_dir=molecule_id, phase1_path=phase1_path, phase2_path=phase2_path)
-    with open(yank_script_filepath, 'w') as f:
-        f.write(script)
-
-
 def create_yank_input_files():
     """Creates XML, PDB and YAML script files to run YANK calculations.
 
@@ -169,19 +138,12 @@ def create_yank_input_files():
     database_filepath = os.path.join('..', 'database.json')
     smirnoff_openmm_dir = os.path.join('..', 'openmmfiles')
     pdb_dir = os.path.join('..', 'pdbfiles')
-    yank_scripts_dir = os.path.join('..', 'yank')
-    yank_script_template_filepath = os.path.join('yank_template.yaml')
     water_mol2_filepath = get_data_filename(os.path.join('systems', 'monomers', 'tip3p_water.mol2'))
 
     # Create directories that don't exist.
-    for directory_path in [smirnoff_openmm_dir, pdb_dir, yank_scripts_dir]:
+    for directory_path in [smirnoff_openmm_dir, pdb_dir]:
         if not os.path.exists(directory_path):
             os.makedirs(directory_path)
-
-    # Read in YANK template script.
-    with open(yank_script_template_filepath, 'r') as f:
-        script_template = f.read()
-
     # Read in database.
     with open(database_filepath, 'r') as f:
         database = json.load(f)
@@ -202,7 +164,6 @@ def create_yank_input_files():
         solvated_pdb_filepath = os.path.join(pdb_dir, solvated_filename + '.pdb')
         vacuum_smirnoff_openmm_filepath = os.path.join(smirnoff_openmm_dir, vacuum_filename + '.xml')
         solvated_smirnoff_openmm_filepath = os.path.join(smirnoff_openmm_dir, solvated_filename + '.xml')
-        yank_script_filepath = os.path.join(yank_scripts_dir, molecule_id + '.yaml')
 
         # Export solvated and vacuum molecule in PDB format.
         create_pdb_files(database[molecule_id]['smiles'], tripos_filename, water_mol2_filepath,
@@ -212,12 +173,6 @@ def create_yank_input_files():
         create_xml_system_files(tripos_filename, water_mol2_filepath,
                                 vacuum_pdb_filepath, solvated_pdb_filepath,
                                 vacuum_smirnoff_openmm_filepath, solvated_smirnoff_openmm_filepath)
-
-        # Add experiment to run for YANK script.
-        create_yank_script(script_template, molecule_id, vacuum_pdb_filepath, solvated_pdb_filepath,
-                           vacuum_smirnoff_openmm_filepath, solvated_smirnoff_openmm_filepath,
-                           yank_script_filepath)
-
 
 if __name__ == '__main__':
     create_yank_input_files()
