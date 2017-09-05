@@ -11,7 +11,7 @@ options:
   pressure: 1*atmosphere
   timestep: 2*femtoseconds
   nsteps_per_iteration: 500
-  number_of_iterations: 3000
+  number_of_iterations: 5000
   anisotropic_dispersion_cutoff: 16.0*angstroms
 
 systems:
