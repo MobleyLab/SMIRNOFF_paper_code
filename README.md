@@ -1,6 +1,10 @@
 # SMIRNOFF paper code
 Code/tools relating to the initial SMIRNOFF format paper.
 
+## Manifest
+* `results/`: contains a summary of the analysis.
+* `scripts/`: the python and YANK scripts to reproduce the calculations and run the analysis.
+
 ## Installation
 On May 30, 2017.
 ```
