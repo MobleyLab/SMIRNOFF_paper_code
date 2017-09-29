@@ -5,11 +5,15 @@ import json
 import logging
 
 import numpy as np
+from scipy.stats import linregress
 
 
 # A validation test fails when its Z-score exceeds this threshold.
 MAX_Z_SCORE = 6
 ANALYSIS_FILEPATH = os.path.join('..', 'results', 'analysis_done.json')
+MOLECULES_DONE_FILEPATH = os.path.join('..', 'results', 'molecules_done.json')
+# ANALYSIS_FILEPATH = os.path.join('..', 'results', 'analysis_done_torsions.json')
+# MOLECULES_DONE_FILEPATH = os.path.join('..', 'results', 'molecules_done_torsions.json')
 
 # Set logger verbosity level.
 logging.basicConfig(level=logging.DEBUG)
@@ -48,6 +52,8 @@ def analyze_directory(experiment_dir):
         analyzer = get_analyzer(phase_path)
         analysis[phase_name] = analyzer.analyze_phase()
         kT = analyzer.kT
+        n_samples = len(analyzer.reporter._storage_dict['analysis'].dimensions['iteration']) - 1
+        assert n_samples == 5000, '{}'.format(n_samples)
 
     # Compute free energy.
     DeltaF = 0.0
@@ -108,7 +114,8 @@ def read_freesolv(molecule_ids):
     freesolv_database = {molecule_id: [freesolv_database[molecule_id]['calc'],
                                        freesolv_database[molecule_id]['d_calc'],
                                        freesolv_database[molecule_id]['expt'],
-                                       freesolv_database[molecule_id]['d_expt']]
+                                       freesolv_database[molecule_id]['d_expt'],
+                                       freesolv_database[molecule_id]['iupac']]
                          for molecule_id in molecule_ids}
     return freesolv_database
 
@@ -124,14 +131,8 @@ def run_analysis():
         analysis_done = dict()
 
     # Load completed calculations.
-    with open('molecules_done.json', 'r') as f:
+    with open(MOLECULES_DONE_FILEPATH, 'r') as f:
         molecules_done = json.load(f)
-
-    # Molecules done is now a list of paths to the YAML files. Convert to molecules ids.
-    for i in range(len(molecules_done)):
-        molecule_id = os.path.basename(molecules_done[i])
-        molecule_id = os.path.splitext(molecule_id)[0]
-        molecules_done[i] = molecule_id
 
     # Isolate calculated free energies and uncertainties.
     freesolv_database = read_freesolv(set(molecules_done))
@@ -152,19 +153,71 @@ def run_analysis():
     # save_analysis(analysis_done, ANALYSIS_FILEPATH)
 
     # Run analysis and store results.
+    interrupted_run = {}
     for molecule_id in molecules_to_analyze:
         experiment_dir = os.path.join('..', 'experiments', molecule_id)
-        free_energy = analyze_directory(experiment_dir)
-        analysis_done[molecule_id] = free_energy
-        save_analysis(analysis_done, ANALYSIS_FILEPATH)
+        try:
+            free_energy = analyze_directory(experiment_dir)
+        except AssertionError as e:
+            interrupted_run[molecule_id] = str(e)
+            print('\nFound interrupted calculation: molecule {}\n'.format(molecule_id))
+        else:
+            analysis_done[molecule_id] = free_energy
+            save_analysis(analysis_done, ANALYSIS_FILEPATH)
 
     # Print comparisons.
     for molecule_id, free_energy in analysis_done.items():
         print_analysis(molecule_id, freesolv_database[molecule_id][:2], free_energy)
 
+    # Print interrupted molecules.
+    print('The calculations of the following molecules have been interrupted.')
+    for molecule_id, n_samples in interrupted_run.items():
+        print(molecule_id, n_samples)
 
-def plot_correlation():
+    # Print list version of interrupted molecules for convenience.
+    print()
+    print('["' + '", "'.join(interrupted_run.keys()) + '"]')
+
+
+def compute_sample_statistics(x, y):
+    slope, intercept, r_value, p_value, stderr = linregress(x, y)
+    diff = np.array(x) - np.array(y)
+    avg_err = diff.mean()
+    rms_err = np.sqrt((diff**2).mean())
+    return np.array([r_value, avg_err, rms_err])
+
+
+def compute_bootstrap_statistics(x, y, significance=0.05, n_bootstrap_samples=1000):
+    """Compute R, mean error and RMSE for the data with bootstrap confidence interval."""
+    x = np.array(x)
+    y = np.array(y)
+    statistics = compute_sample_statistics(x, y)
+
+    # Generate bootstrap statistics variations.
+    statistics_samples_diff = np.zeros((n_bootstrap_samples, len(statistics)))
+    for i in range(n_bootstrap_samples):
+        bootstrap_sample_indices = np.random.randint(low=0, high=len(x), size=len(x))
+        x_bootstrap = x[bootstrap_sample_indices]
+        y_bootstrap = y[bootstrap_sample_indices]
+        statistics_samples_diff[i] = compute_sample_statistics(x_bootstrap, y_bootstrap)
+
+    # Compute confidence intervals.
+    stat_bound_id = int(np.floor(n_bootstrap_samples * significance)) - 1
+    statistics_confidence_intervals = []
+    for i, stat_samples_diff in enumerate(statistics_samples_diff.T):
+        stat_samples_diff.sort()
+        stat_lower_bound = stat_samples_diff[stat_bound_id]
+        stat_higher_bound = stat_samples_diff[-stat_bound_id+1]
+        statistics_confidence_intervals.append([statistics[i], (stat_lower_bound, stat_higher_bound)])
+
+    return statistics_confidence_intervals
+
+
+def plot_correlation(print_outliers=False):
+    import plotutils
     from matplotlib import pyplot as plt
+
+    plt.rcParams['font.size'] = 12
 
     # Read analysis and freesolv database.
     with open(ANALYSIS_FILEPATH, 'r') as f:
@@ -180,25 +233,73 @@ def plot_correlation():
     smirnoff_f = [analysis[molecule_id][0] for molecule_id in molecule_ids]
     smirnoff_df = [analysis[molecule_id][1] for molecule_id in molecule_ids]
 
+    # Print outliers.
+    if print_outliers:
+        error_threshold = 1.0  # kcal/mol
+        statistical_error_theshold = 0.2  # kcal/mol
+        print('# molecules: ', len(molecule_ids))
+        print('# id; abs(DDf) [kcal/mol]; statistical_error [kcal/mol]; iupac name')
+        for i, molecule_id in enumerate(molecule_ids):
+            diff = abs(smirnoff_f[i] - gaff_f[i])
+            if diff > error_threshold or smirnoff_df[i] > statistical_error_theshold:
+                print('{}; {:.3f} kcal/mol; {:.3f} kcal/mol; {}'.format(molecule_id, diff, smirnoff_df[i],
+                                                                        freesolv_database[molecule_id][4]))
+
     # Plot scatter.
-    fig, (ax1, ax2) = plt.subplots(ncols=2, sharex=True, figsize=(13, 6))
+    fig, subplot_axes = plt.subplots(ncols=3, sharex=True, sharey=True, figsize=(18, 6))
+    ax1, ax2, ax3 = subplot_axes
 
-    # Add horizontal line and labels.
-    for ax, name, ref_f, ref_df in zip([ax1, ax2], ['GAFF', 'Exp'], [gaff_f, expt_f], [gaff_df, expt_df]):
-        ax.errorbar(ref_f, smirnoff_f, xerr=ref_df, yerr=smirnoff_df, fmt='o')
+    # Set color cycler.
+    # for ax in subplot_axes.flatten():
+    #     color_cycle = plotutils.set_colormap_cycle(colormap_values=2, colormap_name='viridis', axes=ax)
+
+    gaff_vs_smirnoff = [ax1, ('GAFF', 'SMIRNOFF'), (gaff_f, smirnoff_f), (gaff_df, smirnoff_df)]
+    expt_vs_smirnoff = [ax2, ('Exp', 'SMIRNOFF'), (expt_f, smirnoff_f), (expt_df, smirnoff_df)]
+    expt_vs_gaff = [ax3, ('Exp', 'GAFF'), (expt_f, gaff_f), (expt_df, gaff_df)]
+
+    # Correlation plot.
+    x_limits = np.array([np.inf, -np.inf])
+    for ax, labels, f, df in [gaff_vs_smirnoff, expt_vs_smirnoff, expt_vs_gaff]:
+        ax.errorbar(f[0], f[1], xerr=df[0], yerr=df[1], fmt='o', markersize='2',
+                    elinewidth=0.5, ecolor='black', capsize=2, capthick=0.5)
         ax.set(adjustable='box-forced', aspect='equal')
-        x = np.array(ax.get_xlim())
-        y = np.array(ax.get_ylim())
-        ax.fill_between(x, y - 2, y + 2, alpha=0.4)
-        ax.fill_between(x, y - 1, y + 1, alpha=0.4)
-        ax.plot(x, y, ls='--', c='black')
-        ax.set_xlabel('{} $\Delta F$ [kcal/mol]'.format(name))
-        ax.set_ylabel('SMIRNOFF $\Delta F$ [kcal/mol]')
+        ax.set_xlabel('{} $\Delta F$ [kcal/mol]'.format(labels[0]))
+        ax.set_ylabel('{} $\Delta F$ [kcal/mol]'.format(labels[1]))
 
-    plt.show()
-    # plt.savefig('results.pdf')
+        # Compute statistics and bootstrap confidence interval.
+        bootstrap_statistics = compute_bootstrap_statistics(f[0], f[1])
+        r_value, r_value_interval = bootstrap_statistics[0]
+        avg_err, avg_err_interval = bootstrap_statistics[1]
+        rms_err, rms_err_interval = bootstrap_statistics[2]
+        statistics_msg = ("R:                 {:.3f} [{:.3f}, {:.3f}]\n"
+                          "mean error: {:.3f} [{:.3f}, {:.3f}] kcal/mol\n"
+                          "RMS error:    {:.3f} [{:.3f}, {:.3f}] kcal/mol").format(
+            r_value, r_value_interval[0], r_value_interval[1],
+            avg_err, avg_err_interval[0], avg_err_interval[1],
+            rms_err, rms_err_interval[0], rms_err_interval[1])
+        ax.text(-28.0, 5.2, statistics_msg)
+        plotutils.prettify(ax)
+
+        ax_limits = ax.get_xlim()
+        x_limits[0] = x_limits[0] if x_limits[0] < ax_limits[0] else ax_limits[0]
+        x_limits[1] = x_limits[1] if x_limits[1] > ax_limits[1] else ax_limits[1]
+
+    # Add diagonal line now that we know the total size of the plots.
+    for ax, _, _, _ in [gaff_vs_smirnoff, expt_vs_smirnoff, expt_vs_gaff]:
+        ax.fill_between(x_limits, x_limits + 1, x_limits + 2, alpha=0.4, color='C0')
+        ax.fill_between(x_limits, x_limits - 2, x_limits - 1, alpha=0.4, color='C0')
+        ax.fill_between(x_limits, x_limits - 1, x_limits + 1, alpha=0.4, color='C1')
+        ax.plot(x_limits, x_limits, ls='--', c='black')
+
+
+    fig.tight_layout()
+    # plt.show()
+    plt.savefig('../results/correlation_plots.pdf')
 
 
 if __name__ == '__main__':
-    run_analysis()
-    # plot_correlation()
+    # run_analysis()
+    plot_correlation()
+    # plot_convergence()
+
+
