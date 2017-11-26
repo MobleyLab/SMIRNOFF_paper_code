@@ -14,3 +14,4 @@ Here we loop over molecules in FreeSolv and the ThermoML density/dielectric cons
 ## Manifest
 - [`original_data`](original_data): Original data from the density/dielectric constant validation set (currently https://github.com/kyleabeauchamp/B2) and FreeSolv (github.com/mobleylab/FreeSolv) v0.52 for filtering
 - [`filtered_data`](filtered_data): Filtered data from the same test sets, containing only those molecules which have modified parameters in the update.
+- `identify_modified_molecules.py`: Identifies molecules which use parameters we've modified. Needs to be provided with a list of SMIRKS patterns for the relevant parameters, then generates various output files in `filtered_data`.
