@@ -214,10 +214,9 @@ def compute_bootstrap_statistics(x, y, significance=0.05, n_bootstrap_samples=10
 
 
 def plot_correlation(print_outliers=False):
-    import plotutils
-    from matplotlib import pyplot as plt
+    from matplotlib import cm, pyplot as plt
 
-    plt.rcParams['font.size'] = 12
+    plt.rcParams['font.size'] = 6
 
     # Read analysis and freesolv database.
     with open(ANALYSIS_FILEPATH, 'r') as f:
@@ -245,13 +244,13 @@ def plot_correlation(print_outliers=False):
                 print('{}; {:.3f} kcal/mol; {:.3f} kcal/mol; {}'.format(molecule_id, diff, smirnoff_df[i],
                                                                         freesolv_database[molecule_id][4]))
 
-    # Plot scatter.
-    fig, subplot_axes = plt.subplots(ncols=3, sharex=True, sharey=True, figsize=(18, 6))
-    ax1, ax2, ax3 = subplot_axes
+    # Obtain colors from color map.
+    colormap = cm.get_cmap('viridis')
+    colors = [colormap(x) for x in [0.25, 0.5, 0.85]]
 
-    # Set color cycler.
-    # for ax in subplot_axes.flatten():
-    #     color_cycle = plotutils.set_colormap_cycle(colormap_values=2, colormap_name='viridis', axes=ax)
+    # Plot scatter.
+    fig, subplot_axes = plt.subplots(ncols=3, sharex=True, sharey=True, figsize=(7.5, 2.8))
+    ax1, ax2, ax3 = subplot_axes
 
     gaff_vs_smirnoff = [ax1, ('GAFF', 'SMIRNOFF'), (gaff_f, smirnoff_f), (gaff_df, smirnoff_df)]
     expt_vs_smirnoff = [ax2, ('Exp', 'SMIRNOFF'), (expt_f, smirnoff_f), (expt_df, smirnoff_df)]
@@ -259,9 +258,9 @@ def plot_correlation(print_outliers=False):
 
     # Correlation plot.
     x_limits = np.array([np.inf, -np.inf])
-    for ax, labels, f, df in [gaff_vs_smirnoff, expt_vs_smirnoff, expt_vs_gaff]:
-        ax.errorbar(f[0], f[1], xerr=df[0], yerr=df[1], fmt='o', markersize='2',
-                    elinewidth=0.5, ecolor='black', capsize=2, capthick=0.5)
+    for i, (ax, labels, f, df) in enumerate([gaff_vs_smirnoff, expt_vs_smirnoff, expt_vs_gaff]):
+        ax.errorbar(f[0], f[1], xerr=df[0], yerr=df[1], fmt='o', markersize='1.5', color='black',  #color=colors[1],
+                    alpha=0.85, elinewidth=0.75, ecolor='black', capsize=2, capthick=0.5)
         ax.set(adjustable='box-forced', aspect='equal')
         ax.set_xlabel('{} $\Delta F$ [kcal/mol]'.format(labels[0]))
         ax.set_ylabel('{} $\Delta F$ [kcal/mol]'.format(labels[1]))
@@ -271,14 +270,28 @@ def plot_correlation(print_outliers=False):
         r_value, r_value_interval = bootstrap_statistics[0]
         avg_err, avg_err_interval = bootstrap_statistics[1]
         rms_err, rms_err_interval = bootstrap_statistics[2]
-        statistics_msg = ("R:                 {:.3f} [{:.3f}, {:.3f}]\n"
-                          "mean error: {:.3f} [{:.3f}, {:.3f}] kcal/mol\n"
-                          "RMS error:    {:.3f} [{:.3f}, {:.3f}] kcal/mol").format(
+        if i == 0:
+            statistics_msg = ("R:            {:.3f} [ {:.3f},  {:.3f}]\n"
+                              "MU diff:   {:.3f} [{:.3f}, {:.3f}] kcal/mol\n"
+                              "RMS diff: {:.3f} [ {:.3f},  {:.3f}] kcal/mol")
+        else:
+            statistics_msg = ("R:        {:.3f} [ {:.3f},  {:.3f}]\n"
+                              "MUE:  {:.3f} [{:.3f}, {:.3f}] kcal/mol\n"
+                              "RMSE: {:.3f} [ {:.3f},  {:.3f}] kcal/mol")
+        statistics_msg = statistics_msg.format(
             r_value, r_value_interval[0], r_value_interval[1],
             avg_err, avg_err_interval[0], avg_err_interval[1],
             rms_err, rms_err_interval[0], rms_err_interval[1])
-        ax.text(-28.0, 5.2, statistics_msg)
-        plotutils.prettify(ax)
+        ax.text(-27.0, 2.2, statistics_msg)
+
+        # Remove spines.
+        for spine_name in ['top', 'bottom', 'right', 'left']:
+            ax.spines[spine_name].set_visible(False)
+        # Remove ticks.
+        ax.tick_params(which='both', top=False, bottom=False, left=False, right=False,
+                       labeltop=False, labelbottom=True, labelleft=True, labelright=False)
+        # Add grid.
+        ax.grid(axis='both', linestyle="--", lw=0.5, color="black", alpha=0.2)
 
         ax_limits = ax.get_xlim()
         x_limits[0] = x_limits[0] if x_limits[0] < ax_limits[0] else ax_limits[0]
@@ -286,10 +299,12 @@ def plot_correlation(print_outliers=False):
 
     # Add diagonal line now that we know the total size of the plots.
     for ax, _, _, _ in [gaff_vs_smirnoff, expt_vs_smirnoff, expt_vs_gaff]:
-        ax.fill_between(x_limits, x_limits + 1, x_limits + 2, alpha=0.4, color='C0')
-        ax.fill_between(x_limits, x_limits - 2, x_limits - 1, alpha=0.4, color='C0')
-        ax.fill_between(x_limits, x_limits - 1, x_limits + 1, alpha=0.4, color='C1')
-        ax.plot(x_limits, x_limits, ls='--', c='black')
+        ax.fill_between(x_limits, x_limits + 1, x_limits + 2, alpha=0.4, color=colors[0])
+        ax.fill_between(x_limits, x_limits - 2, x_limits - 1, alpha=0.4, color=colors[0])
+        ax.fill_between(x_limits, x_limits - 1, x_limits + 1, alpha=0.4, color=colors[2])
+        ax.plot(x_limits, x_limits, ls='--', c='black', alpha=0.8, lw=0.7)
+        ax.set_xlim(*x_limits)
+        ax.set_ylim(*x_limits)
 
 
     fig.tight_layout()
