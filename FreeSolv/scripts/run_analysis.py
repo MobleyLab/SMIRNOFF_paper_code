@@ -271,15 +271,15 @@ def plot_correlation(print_outliers=False):
         avg_err, avg_err_interval = bootstrap_statistics[1]
         rms_err, rms_err_interval = bootstrap_statistics[2]
         if i == 0:
-            statistics_msg = ("R:            {:.3f} [ {:.3f},  {:.3f}]\n"
+            statistics_msg = ("R$^2$:          {:.3f} [ {:.3f},  {:.3f}]\n"
                               "MU diff:   {:.3f} [{:.3f}, {:.3f}] kcal/mol\n"
                               "RMS diff: {:.3f} [ {:.3f},  {:.3f}] kcal/mol")
         else:
-            statistics_msg = ("R:        {:.3f} [ {:.3f},  {:.3f}]\n"
+            statistics_msg = ("R$^2$:      {:.3f} [ {:.3f},  {:.3f}]\n"
                               "MUE:  {:.3f} [{:.3f}, {:.3f}] kcal/mol\n"
                               "RMSE: {:.3f} [ {:.3f},  {:.3f}] kcal/mol")
         statistics_msg = statistics_msg.format(
-            r_value, r_value_interval[0], r_value_interval[1],
+            r_value**2, r_value_interval[0]**2, r_value_interval[1]**2,
             avg_err, avg_err_interval[0], avg_err_interval[1],
             rms_err, rms_err_interval[0], rms_err_interval[1])
         ax.text(-27.0, 2.2, statistics_msg)
