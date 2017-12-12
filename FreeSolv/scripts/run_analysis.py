@@ -187,7 +187,7 @@ def compute_sample_statistics(x, y):
     return np.array([r_value, avg_err, rms_err])
 
 
-def compute_bootstrap_statistics(x, y, significance=0.05, n_bootstrap_samples=1000):
+def compute_bootstrap_statistics(x, y, percentile=0.95, n_bootstrap_samples=5000):
     """Compute R, mean error and RMSE for the data with bootstrap confidence interval."""
     x = np.array(x)
     y = np.array(y)
@@ -202,7 +202,7 @@ def compute_bootstrap_statistics(x, y, significance=0.05, n_bootstrap_samples=10
         statistics_samples_diff[i] = compute_sample_statistics(x_bootstrap, y_bootstrap)
 
     # Compute confidence intervals.
-    stat_bound_id = int(np.floor(n_bootstrap_samples * significance)) - 1
+    stat_bound_id = int(np.floor(n_bootstrap_samples * (1 - percentile) / 2)) - 1
     statistics_confidence_intervals = []
     for i, stat_samples_diff in enumerate(statistics_samples_diff.T):
         stat_samples_diff.sort()
