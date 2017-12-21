@@ -6,7 +6,7 @@ import pandas as pd
 
 # List parameters which were modified here; molecules containing these
 # will be retrieved
-modified_smirks = [ '[#1:1]-[#8]']
+modified_smirks = [ '[#1:1]-[#8]', '[#6r4:1]-;@[#6r4:2]-;@[#6r4:3]', '!#1:1]-[#6r4:2]-;!@[!#1:3]', '[!#1:1]-[#6r4:2]-;!@[#1:3]']
 
 # output directory
 outdir = 'filtered_data'
