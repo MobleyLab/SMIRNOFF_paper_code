@@ -153,7 +153,7 @@ def create_yank_input_files():
     tripos_filenames = list(glob.glob(mol2_files_pattern))
 
     # Remove everything with names which are NOT in the list of those we need to repeat.
-    file = open( '../../modification_validation/filtered_data/FreeSolv/database_filtered.txt'), 'r')
+    file = open( '../../modification_validation/filtered_data/FreeSolv/database_filtered.txt', 'r')
     database_text = file.readlines()
     file.close()
     retain_mols = []
