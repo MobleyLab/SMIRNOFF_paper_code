@@ -7,10 +7,10 @@ This directory repeats benchmark FreeSolv calculations on a subset of molecules 
 * `scripts/`: the python and YANK scripts to reproduce the calculations and run the analysis.
 
 ## Installation
-On Dec. 27, 2017.
+On Dec. 27, 2017; using Yank 0.16.0 for consistency with earlier calculations.
 ```
 conda config --add channels omnia --add channels conda-forge
-conda create --name smirnoff yank openforcefield packmol 'icu=58.*'
+conda create --name smirnoff yank=0.16.0 openforcefield packmol 'icu=58.*'
 source activate smirnoff
 pip install -i https://pypi.anaconda.org/OpenEye/simple OpenEye-toolkits
 ```
@@ -140,6 +140,7 @@ qt                        5.6.2                         7    conda-forge
 qtconsole                 4.3.1                    py36_0    conda-forge
 readline                  7.0                           0    conda-forge
 requests                  2.18.4                   py36_1    conda-forge
+schema                    0.6.2                    py36_0    omnia
 scipy                     1.0.0            py36hbf646e7_0
 setuptools                38.2.4                   py36_0    conda-forge
 simplegeneric             0.8.1                    py36_0    conda-forge
@@ -165,7 +166,7 @@ xorg-libxau               1.0.8                         3    conda-forge
 xorg-libxdmcp             1.1.2                         3    conda-forge
 xz                        5.2.3                         0    conda-forge
 yaml                      0.1.6                         0    conda-forge
-yank                      0.19.4                   py36_0    omnia
+yank                      0.16.0                   py36_0    omnia
 zeromq                    4.2.1                         1    conda-forge
 zlib                      1.2.11                        0    conda-forge
 ```
