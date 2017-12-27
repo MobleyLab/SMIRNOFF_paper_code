@@ -1,5 +1,5 @@
 #!/bin/bash
-N_JOBS=40
+N_JOBS=10
 # for i in 30 31 32 33
 for ((i=1; i<=$N_JOBS; i++ ))
 do
