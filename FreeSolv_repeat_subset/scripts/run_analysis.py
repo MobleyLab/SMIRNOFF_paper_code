@@ -313,8 +313,8 @@ def plot_correlation(print_outliers=False):
 
 
 if __name__ == '__main__':
-    # run_analysis()
+    run_analysis()
     plot_correlation()
-    # plot_convergence()
+    plot_convergence()
 
 

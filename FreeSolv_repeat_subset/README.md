@@ -5,6 +5,8 @@ This directory repeats benchmark FreeSolv calculations on a subset of molecules 
 ## Manifest
 * `results/`: contains a summary of the analysis.
 * `scripts/`: the python and YANK scripts to reproduce the calculations and run the analysis.
+* `openmmfiles.tar.gz`: Exact OpenMM files used running calculations.
+* `pdbfiles.tar.gz`: Exact PDB files used running calculations.
 
 ## Installation
 On Dec. 27, 2017; using Yank 0.16.0 for consistency with earlier calculations.

@@ -99,3 +99,12 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# Trajectory and YAML stuff
+FreeSolv_repeat_subset/experiments/*/*.nc
+FreeSolv_repeat_subset/experiments/*/*.yaml
+# Mol2 files
+FreeSolv_repeat_subset/mol2files_sybyl/*.mol2
+# Openmm files, PDB files
+FreeSolv_repeat_subset/openmmfiles
+FreeSolv_repeat_subset/pdbfiles
