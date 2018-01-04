@@ -108,3 +108,6 @@ FreeSolv_repeat_subset/mol2files_sybyl/*.mol2
 # Openmm files, PDB files
 FreeSolv_repeat_subset/openmmfiles
 FreeSolv_repeat_subset/pdbfiles
+
+# Ignore short MD tests from hydrogen radii
+hydrogen_radii/results
