@@ -1,0 +1,15 @@
+Neff,346.899
+block_length,78
+cas,126492-54-4
+density,925.640665803
+density_sigma,0.167894247423
+dielectric,5.43817316580136
+dielectric_sigma,0.4569774281
+dielectric_sigma_fixedblock,0.090578590209
+formula,C7H12O2
+inefficiency,23.0643
+initial_density_length,8000
+initial_traj_length,400
+n_frames,400
+n_trimmed,0
+temperature,293.2
