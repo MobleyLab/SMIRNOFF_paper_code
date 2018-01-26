@@ -11,8 +11,8 @@ from scipy.stats import linregress
 # A validation test fails when its Z-score exceeds this threshold.
 MAX_Z_SCORE = 6
 ANALYSIS_FILEPATH = os.path.join('..', 'results', 'analysis_done.json')
-MOLECULES_DONE_FILEPATH = os.path.join('..', 'results', 'molecules_done.json')
 FULL_ANALYSIS_FILEPATH = os.path.join('../../', 'FreeSolv/results', 'analysis_done.json')
+MOLECULES_DONE_FILEPATH = os.path.join('..', 'results', 'molecules_done.json')
 FULL_MOLECULES_DONE_FILEPATH = os.path.join('../..', 'FreeSolv/results', 'molecules_done.json')
 
 # Set logger verbosity level.
@@ -130,9 +130,28 @@ def run_analysis():
     else:
         analysis_done = dict()
 
+
+    # Load completed old analysis and add any compounds we DON'T have to dict
+    if os.path.exists(FULL_ANALYSIS_FILEPATH):
+        with open(FULL_ANALYSIS_FILEPATH, 'r') as f:
+            old_analysis_done = json.load(f)
+            # Copy in entries
+            for key in old_analysis_done:
+                if not key in analysis_done:
+                    analysis_done[key] = old_analysis_done[key]
+
     # Load completed calculations.
     with open(MOLECULES_DONE_FILEPATH, 'r') as f:
         molecules_done = json.load(f)
+    print(len(molecules_done))
+    with open(FULL_MOLECULES_DONE_FILEPATH, 'r') as f:
+        old_molecules_done = json.load(f)
+        for cid in old_molecules_done:
+            if not cid in molecules_done:
+                molecules_done.append(cid)
+
+    # Remove a duplicate compound which was removed in FreeSolv v0.52
+    molecules_done.remove('mobley_4689084')
 
     # Isolate calculated free energies and uncertainties.
     freesolv_database = read_freesolv(set(molecules_done))
@@ -161,9 +180,13 @@ def run_analysis():
         except AssertionError as e:
             interrupted_run[molecule_id] = str(e)
             print('\nFound interrupted calculation: molecule {}\n'.format(molecule_id))
+        #except FileNotFoundError:
+            # LOAD OLD DATA
         else:
             analysis_done[molecule_id] = free_energy
             save_analysis(analysis_done, ANALYSIS_FILEPATH)
+    # Remove molecule we don't want to analyze
+    analysis_done.pop('mobley_4689084')
 
     # Print comparisons.
     for molecule_id, free_energy in analysis_done.items():
@@ -221,11 +244,17 @@ def plot_correlation(print_outliers=False):
     # Read analysis and freesolv database.
     with open(ANALYSIS_FILEPATH, 'r') as f:
         analysis = json.load(f)
-    molecule_ids = list(analysis.keys())
-    freesolv_database = read_freesolv(analysis)
 
     with open(FULL_ANALYSIS_FILEPATH, 'r') as f:
-        analysis_old = json.load(f)
+        old_analysis = json.load(f)
+        # Copy in entries
+        for key in old_analysis:
+            if not key in analysis:
+                analysis[key] = old_analysis[key]
+    analysis.pop('mobley_4689084') #Compound removed from FreeSolv v0.52
+
+    molecule_ids = list(analysis.keys())
+    freesolv_database = read_freesolv(analysis)
 
     # Prepare data for plotting.
     gaff_f = [freesolv_database[molecule_id][0] for molecule_id in molecule_ids]
@@ -234,8 +263,6 @@ def plot_correlation(print_outliers=False):
     expt_df = [freesolv_database[molecule_id][3] for molecule_id in molecule_ids]
     smirnoff_f = [analysis[molecule_id][0] for molecule_id in molecule_ids]
     smirnoff_df = [analysis[molecule_id][1] for molecule_id in molecule_ids]
-    smirnoff_old_f = [analysis_old[molecule_id][0] for molecule_id in molecule_ids]
-    smirnoff_old_df = [analysis_old[molecule_id][1] for molecule_id in molecule_ids]
 
     # Print outliers.
     if print_outliers:
@@ -287,7 +314,7 @@ def plot_correlation(print_outliers=False):
             r_value**2, r_value_interval[0]**2, r_value_interval[1]**2,
             avg_err, avg_err_interval[0], avg_err_interval[1],
             rms_err, rms_err_interval[0], rms_err_interval[1])
-        ax.text(-27.0, 0.2, statistics_msg)
+        ax.text(-27.0, 2.2, statistics_msg)
 
         # Remove spines.
         for spine_name in ['top', 'bottom', 'right', 'left']:
@@ -314,70 +341,7 @@ def plot_correlation(print_outliers=False):
 
     fig.tight_layout()
     # plt.show()
-    plt.savefig('../results/correlation_plots.pdf')
-
-    # DO SAME THING AGAIN BUT FOR OLD DATA
-    fig, subplot_axes = plt.subplots(ncols=3, sharex=True, sharey=True, figsize=(7.5, 2.8))
-    ax1, ax2, ax3 = subplot_axes
-
-    gaff_vs_smirnoff = [ax1, ('GAFF', 'SMIRNOFF'), (gaff_f, smirnoff_old_f), (gaff_df, smirnoff_old_df)]
-    expt_vs_smirnoff = [ax2, ('Exp', 'SMIRNOFF'), (expt_f, smirnoff_old_f), (expt_df, smirnoff_old_df)]
-    expt_vs_gaff = [ax3, ('Exp', 'GAFF'), (expt_f, gaff_f), (expt_df, gaff_df)]
-
-    # Correlation plot.
-    x_limits = np.array([np.inf, -np.inf])
-    for i, (ax, labels, f, df) in enumerate([gaff_vs_smirnoff, expt_vs_smirnoff, expt_vs_gaff]):
-        ax.errorbar(f[0], f[1], xerr=df[0], yerr=df[1], fmt='o', markersize='1.5', color='black',  #color=colors[1],
-                    alpha=0.85, elinewidth=0.75, ecolor='black', capsize=2, capthick=0.5)
-        ax.set(adjustable='box-forced', aspect='equal')
-        ax.set_xlabel('{} $\Delta F$ [kcal/mol]'.format(labels[0]))
-        ax.set_ylabel('{} $\Delta F$ [kcal/mol]'.format(labels[1]))
-
-        # Compute statistics and bootstrap confidence interval.
-        bootstrap_statistics = compute_bootstrap_statistics(f[0], f[1])
-        r_value, r_value_interval = bootstrap_statistics[0]
-        avg_err, avg_err_interval = bootstrap_statistics[1]
-        rms_err, rms_err_interval = bootstrap_statistics[2]
-        if i == 0:
-            statistics_msg = ("R$^2$:          {:.3f} [ {:.3f},  {:.3f}]\n"
-                              "MU diff:   {:.3f} [{:.3f}, {:.3f}] kcal/mol\n"
-                              "RMS diff: {:.3f} [ {:.3f},  {:.3f}] kcal/mol")
-        else:
-            statistics_msg = ("R$^2$:      {:.3f} [ {:.3f},  {:.3f}]\n"
-                              "MUE:  {:.3f} [{:.3f}, {:.3f}] kcal/mol\n"
-                              "RMSE: {:.3f} [ {:.3f},  {:.3f}] kcal/mol")
-        statistics_msg = statistics_msg.format(
-            r_value**2, r_value_interval[0]**2, r_value_interval[1]**2,
-            avg_err, avg_err_interval[0], avg_err_interval[1],
-            rms_err, rms_err_interval[0], rms_err_interval[1])
-        ax.text(-27.0, 0.2, statistics_msg)
-
-        # Remove spines.
-        for spine_name in ['top', 'bottom', 'right', 'left']:
-            ax.spines[spine_name].set_visible(False)
-        # Remove ticks.
-        ax.tick_params(which='both', top=False, bottom=False, left=False, right=False,
-                       labeltop=False, labelbottom=True, labelleft=True, labelright=False)
-        # Add grid.
-        ax.grid(axis='both', linestyle="--", lw=0.5, color="black", alpha=0.2)
-
-        ax_limits = ax.get_xlim()
-        x_limits[0] = x_limits[0] if x_limits[0] < ax_limits[0] else ax_limits[0]
-        x_limits[1] = x_limits[1] if x_limits[1] > ax_limits[1] else ax_limits[1]
-
-    # Add diagonal line now that we know the total size of the plots.
-    for ax, _, _, _ in [gaff_vs_smirnoff, expt_vs_smirnoff, expt_vs_gaff]:
-        ax.fill_between(x_limits, x_limits + 1, x_limits + 2, alpha=0.4, color=colors[0])
-        ax.fill_between(x_limits, x_limits - 2, x_limits - 1, alpha=0.4, color=colors[0])
-        ax.fill_between(x_limits, x_limits - 1, x_limits + 1, alpha=0.4, color=colors[2])
-        ax.plot(x_limits, x_limits, ls='--', c='black', alpha=0.8, lw=0.7)
-        ax.set_xlim(*x_limits)
-        ax.set_ylim(*x_limits)
-
-
-    fig.tight_layout()
-    # plt.show()
-    plt.savefig('../results/correlation_plots_old.pdf')
+    plt.savefig('../results/correlation_plots_fullset.pdf')
 
 
 if __name__ == '__main__':

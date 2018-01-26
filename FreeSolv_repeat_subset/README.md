@@ -3,7 +3,7 @@ Code/tools relating to FreeSolv hydration free energ calculations as reported in
 This directory repeats benchmark FreeSolv calculations on a subset of molecules (those with updated cyclobutane parameters and/or updated hydroxyl parameters).
 
 ## Manifest
-* `results/`: contains a summary of the analysis.
+* `results/`: contains a summary of the analysis. `correlation_plots_fullset.pdf` shows results of the analysis on the full FreeSolv, including those values repeated here as well as the original values from the `FreeSolv` directory for the unaffected compounds. `correlation_plots.pdf` shows new results for just the affected subset, and `correlation_plots_old.pdf` shows original results (`FreeSolv` directory) for just the affected subset.
 * `scripts/`: the python and YANK scripts to reproduce the calculations and run the analysis.
 * `openmmfiles.tar.gz`: Exact OpenMM files used running calculations.
 * `pdbfiles.tar.gz`: Exact PDB files used running calculations.
