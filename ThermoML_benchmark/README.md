@@ -11,8 +11,8 @@ Additionally, we provide run settings used when conducting the simulations.
 
 
 ## Manifest
-- [`B2-0.0.1.tar.gz`](B2-0.0.1.tar.gz): Version 0.0.1 of benchmark code as used for GAFF benchmarks. Repo subsequently renamed to `SolutionFFBench`
-- [`B2-0.0.2.tar.gz`](B2-0.0.2.tar.gz): Version 0.0.2 of benchmark code as used for SMIRNOFF benchmarks. Repo subsequently renamed to `SolutionFFBench`
+- [`B2-0.0.1.tar.gz`](B2-0.0.1.tar.gz): Version 0.0.1 of benchmark code as used for GAFF benchmarks. Repo subsequently renamed to `SolutionFFBench`. Minor analysis tweaks were made here for the paper, e.g. a grid was added to the plots to better match the paper style. Additionally, statistics were computed (and overlaid on plots) following FreeSolv code.
+- [`B2-0.0.2.tar.gz`](B2-0.0.2.tar.gz): Version 0.0.2 of benchmark code as used for SMIRNOFF benchmarks. Repo subsequently renamed to `SolutionFFBench`. Minor analysis tweaks were made here for the paper, e.g. a grid was added to the plots to better match the paper style. Additionally, statistics were computed (and overlaid on plots) following FreeSolv code.
 - [`results_GAFF`](results_GAFF): Results of GAFF calculations (tables and plots)
 - [`results_newSMIRNOFF`](results_newSMIRNOFF): Results of SMIRNOFF calculations (tables and plots)
 
