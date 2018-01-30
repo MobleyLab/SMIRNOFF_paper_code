@@ -111,3 +111,6 @@ FreeSolv_repeat_subset/pdbfiles
 
 # Ignore short MD tests from hydrogen radii
 hydrogen_radii/results
+
+ThermoML_benchmark/B2-0.0.1/*
+ThermoML_benchmark/B2-0.0.2/*
