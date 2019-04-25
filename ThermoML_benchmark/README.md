@@ -9,12 +9,11 @@ Here, we used versions 0.0.1 and 0.0.2 of this updated benchmark code to run and
 Those releases of Kyle Beauchamp's code are archived here.
 Additionally, we provide run settings used when conducting the simulations.
 
-
 ## Manifest
 - [`B2-0.0.1.tar.gz`](B2-0.0.1.tar.gz): Version 0.0.1 of benchmark code as used for GAFF benchmarks. Repo subsequently renamed to `SolutionFFBench`. Minor analysis tweaks were made here for the paper, e.g. a grid was added to the plots to better match the paper style. Additionally, statistics were computed (and overlaid on plots) following FreeSolv code.
 - [`B2-0.0.2.tar.gz`](B2-0.0.2.tar.gz): Version 0.0.2 of benchmark code as used for SMIRNOFF benchmarks. Repo subsequently renamed to `SolutionFFBench`. Minor analysis tweaks were made here for the paper, e.g. a grid was added to the plots to better match the paper style. Additionally, statistics were computed (and overlaid on plots) following FreeSolv code.
 - [`results_GAFF`](results_GAFF): Results of GAFF calculations (tables and plots)
-- [`results_newSMIRNOFF`](results_newSMIRNOFF): Results of SMIRNOFF calculations (tables and plots)
+- [`results_newSMIRNOFF`](results_newSMIRNOFF): Results of SMIRNOFF calculations (tables and plots, *see notes below*)
 
 
 ## Settings
@@ -27,3 +26,10 @@ Here, we used (in `density_simulation_parameters.py`):
 - `OUTPUT_DATA_FREQUENCY = 250`
 - `STD_ERROR_TOLERANCE = 0.0002` (g/mL)
 The forcefield name was varied from GAFF to SMIRNOFF for output files and to deterermine the input forcefield.
+
+## Additional Notes
+
+- The tables and figures presented in the [`results_newSMIRNOFF`](results_newSMIRNOFF) folder are an updated set of 
+results of benchmarking the 1.0.8 version of the 
+[smirnoff99Frosst](https://github.com/openforcefield/smirnoff99Frosst/tree/v1.0.8) force field, which includes a 
+corrected set of [hydroxyl hydrogen vdW parameters](https://github.com/openforcefield/openforcefield/pull/179).
